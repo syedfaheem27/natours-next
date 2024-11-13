@@ -1,6 +1,8 @@
 import { IncomingMessage, Server, ServerResponse } from "http";
-import { fillTemplate } from "../utils/fill-template";
+import slugify from "slugify";
 import { fruit } from "./types/fruit";
+
+const fillTemplate = require("../utils/fill-template");
 
 const fs = require("fs");
 const http = require("http");
@@ -15,6 +17,15 @@ const data = fs.readFileSync(
   "utf-8"
 );
 const fruits = JSON.parse(data) as fruit[];
+export const slugs: {
+  slug: string;
+  id: number;
+}[] = fruits.map((el) => {
+  return {
+    slug: slugify(el.productName, { lower: true, replacement: "-" }),
+    id: el.id,
+  };
+});
 
 const productCardTemplate = fs.readFileSync(
   path.join(basePath, "templates/product-card.template.html"),
@@ -48,8 +59,10 @@ const server: Server<typeof IncomingMessage, typeof ServerResponse> =
 
       //PRODUCTS
     } else if (pathname === "/product") {
+      const { id } = slugs.find((el) => el.slug === query.name)!;
+
       const fruit = fruits.find((f) => {
-        return f.id === Number(query.id);
+        return f.id === id;
       });
 
       if (fruit && fruit.id !== undefined) {

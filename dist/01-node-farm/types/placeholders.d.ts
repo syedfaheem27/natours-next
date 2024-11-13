@@ -1,5 +1,5 @@
 export declare enum placeholder {
-    id = "ID",
+    slug = "SLUG",
     name = "NAME",
     image = "IMAGE",
     country = "COUNTRY",

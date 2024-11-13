@@ -1,6 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const fill_template_1 = require("../utils/fill-template");
+exports.slugs = void 0;
+const slugify_1 = __importDefault(require("slugify"));
+const fillTemplate = require("../utils/fill-template");
 const fs = require("fs");
 const http = require("http");
 const url = require("url");
@@ -9,6 +14,12 @@ const basePath = path.join(__dirname, "../../01-node-farm");
 //Reading dev-data
 const data = fs.readFileSync(path.join(basePath, "dev-data", "data.json"), "utf-8");
 const fruits = JSON.parse(data);
+exports.slugs = fruits.map((el) => {
+    return {
+        slug: (0, slugify_1.default)(el.productName, { lower: true, replacement: "-" }),
+        id: el.id,
+    };
+});
 const productCardTemplate = fs.readFileSync(path.join(basePath, "templates/product-card.template.html"), "utf-8");
 const overviewTemplate = fs.readFileSync(path.join(basePath, "templates/overview.template.html"), "utf-8");
 const productsTemplate = fs.readFileSync(path.join(basePath, "templates/product.template.html"), "utf-8");
@@ -17,7 +28,7 @@ const server = http.createServer((req, res) => {
     //OVERVIEW PAGE
     if (pathname === "/" || pathname === "/overview") {
         let cards = fruits
-            .map((fruit) => (0, fill_template_1.fillTemplate)(productCardTemplate, fruit))
+            .map((fruit) => fillTemplate(productCardTemplate, fruit))
             .join("");
         const overviewPage = overviewTemplate.replace("{%PRODUCT_CARDS%}", cards);
         res.writeHead(200, {
@@ -27,11 +38,12 @@ const server = http.createServer((req, res) => {
         //PRODUCTS
     }
     else if (pathname === "/product") {
+        const { id } = exports.slugs.find((el) => el.slug === query.name);
         const fruit = fruits.find((f) => {
-            return f.id === Number(query.id);
+            return f.id === id;
         });
         if (fruit && fruit.id !== undefined) {
-            const html = (0, fill_template_1.fillTemplate)(productsTemplate, fruit);
+            const html = fillTemplate(productsTemplate, fruit);
             res.writeHead(200, {
                 "content-type": "text/html",
             });

@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fillTemplate = void 0;
 const placeholders_1 = require("../01-node-farm/types/placeholders");
-const fillTemplate = (baseTemplate, x) => {
-    let output = baseTemplate.replaceAll(`{%${placeholders_1.placeholder.id}%}`, String(x.id));
+const _01_node_farm_1 = require("../01-node-farm");
+module.exports = (baseTemplate, x) => {
+    const { slug } = _01_node_farm_1.slugs.find((el) => el.id === x.id);
+    let output = baseTemplate.replaceAll(`{%${placeholders_1.placeholder.slug}%}`, slug);
     output = output.replaceAll(`{%${placeholders_1.placeholder.name}%}`, x.productName);
     output = output.replaceAll(`{%${placeholders_1.placeholder.image}%}`, x.image);
     output = output.replaceAll(`{%${placeholders_1.placeholder.country}%}`, x.from);
@@ -15,4 +16,3 @@ const fillTemplate = (baseTemplate, x) => {
         output = output.replace(`{%${placeholders_1.placeholder.in_organic}%}`, "not-organic");
     return output;
 };
-exports.fillTemplate = fillTemplate;

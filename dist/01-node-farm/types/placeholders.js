@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.placeholder = void 0;
 var placeholder;
 (function (placeholder) {
-    placeholder["id"] = "ID";
+    placeholder["slug"] = "SLUG";
     placeholder["name"] = "NAME";
     placeholder["image"] = "IMAGE";
     placeholder["country"] = "COUNTRY";
