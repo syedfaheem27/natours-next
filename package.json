@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "nodemon": "^3.1.7",
+    "tsc-watch": "^6.2.0",
+    "typescript": "^5.6.3"
+  },
+  "scripts": {
+    "start": "nodemon dist/01-node-farm/index.js",
+    "watch": "tsc-watch --onSuccess \"npm start\"",
+    "build": "tsc"
+  }
+}
