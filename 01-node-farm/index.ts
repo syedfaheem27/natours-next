@@ -1,33 +1,41 @@
 import { IncomingMessage, Server, ServerResponse } from "http";
-import { placeholder } from "./types/placeholders";
 import { fillTemplate } from "../utils/fill-template";
 import { fruit } from "./types/fruit";
 
 const fs = require("fs");
 const http = require("http");
 const url = require("url");
+const path = require("path");
 
-const basePath = `${__dirname}/../../01-node-farm`;
+const basePath = path.join(__dirname, "../../01-node-farm");
 
 //Reading dev-data
-export const data = fs.readFileSync(`${basePath}/dev-data/data.json`, "utf-8");
-export const productCardTemplate = fs.readFileSync(
-  `${basePath}/templates/product-card.template.html`,
+const data = fs.readFileSync(
+  path.join(basePath, "dev-data", "data.json"),
   "utf-8"
 );
-export const overviewTemplate = fs.readFileSync(
-  `${basePath}/templates/overview.template.html`,
+const fruits = JSON.parse(data) as fruit[];
+
+const productCardTemplate = fs.readFileSync(
+  path.join(basePath, "templates/product-card.template.html"),
+  "utf-8"
+);
+const overviewTemplate = fs.readFileSync(
+  path.join(basePath, "templates/overview.template.html"),
+  "utf-8"
+);
+
+const productsTemplate = fs.readFileSync(
+  path.join(basePath, "templates/product.template.html"),
   "utf-8"
 );
 
 const server: Server<typeof IncomingMessage, typeof ServerResponse> =
   http.createServer((req: IncomingMessage, res: ServerResponse) => {
-    console.log(url.parse(req.url));
+    const { pathname, query } = url.parse(req.url, true);
 
-    const pathName = req.url;
-
-    if (pathName === "/" || pathName === "/overview") {
-      let fruits = JSON.parse(data) as fruit[];
+    //OVERVIEW PAGE
+    if (pathname === "/" || pathname === "/overview") {
       let cards = fruits
         .map((fruit) => fillTemplate(productCardTemplate, fruit))
         .join("");
@@ -37,14 +45,36 @@ const server: Server<typeof IncomingMessage, typeof ServerResponse> =
         "Content-type": "text/html",
       });
       res.end(overviewPage);
-    } else if (pathName === "/products")
-      res.end("Welcome to the products page");
-    else if (pathName === "/api") {
+
+      //PRODUCTS
+    } else if (pathname === "/product") {
+      const fruit = fruits.find((f) => {
+        return f.id === Number(query.id);
+      });
+
+      if (fruit && fruit.id !== undefined) {
+        const html = fillTemplate(productsTemplate, fruit);
+        res.writeHead(200, {
+          "content-type": "text/html",
+        });
+        res.end(html);
+      } else {
+        res.writeHead(404, {
+          "content-type": "text/html",
+        });
+        res.end("<h1>No Product found!</h1>");
+      }
+    }
+    //API
+    else if (pathname === "/api") {
       res.writeHead(200, {
         "content-type": "application/json",
       });
       res.end(data);
-    } else {
+    }
+
+    //NOT FOUND
+    else {
       res.writeHead(404, {
         "Content-Type": "text/html",
       });

@@ -1,37 +1,57 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.overviewTemplate = exports.productCardTemplate = exports.data = void 0;
 const fill_template_1 = require("../utils/fill-template");
 const fs = require("fs");
 const http = require("http");
 const url = require("url");
-const basePath = `${__dirname}/../../01-node-farm`;
+const path = require("path");
+const basePath = path.join(__dirname, "../../01-node-farm");
 //Reading dev-data
-exports.data = fs.readFileSync(`${basePath}/dev-data/data.json`, "utf-8");
-exports.productCardTemplate = fs.readFileSync(`${basePath}/templates/product-card.template.html`, "utf-8");
-exports.overviewTemplate = fs.readFileSync(`${basePath}/templates/overview.template.html`, "utf-8");
+const data = fs.readFileSync(path.join(basePath, "dev-data", "data.json"), "utf-8");
+const fruits = JSON.parse(data);
+const productCardTemplate = fs.readFileSync(path.join(basePath, "templates/product-card.template.html"), "utf-8");
+const overviewTemplate = fs.readFileSync(path.join(basePath, "templates/overview.template.html"), "utf-8");
+const productsTemplate = fs.readFileSync(path.join(basePath, "templates/product.template.html"), "utf-8");
 const server = http.createServer((req, res) => {
-    console.log(url.parse(req.url));
-    const pathName = req.url;
-    if (pathName === "/" || pathName === "/overview") {
-        let fruits = JSON.parse(exports.data);
+    const { pathname, query } = url.parse(req.url, true);
+    //OVERVIEW PAGE
+    if (pathname === "/" || pathname === "/overview") {
         let cards = fruits
-            .map((fruit) => (0, fill_template_1.fillTemplate)(exports.productCardTemplate, fruit))
+            .map((fruit) => (0, fill_template_1.fillTemplate)(productCardTemplate, fruit))
             .join("");
-        const overviewPage = exports.overviewTemplate.replace("{%PRODUCT_CARDS%}", cards);
+        const overviewPage = overviewTemplate.replace("{%PRODUCT_CARDS%}", cards);
         res.writeHead(200, {
             "Content-type": "text/html",
         });
         res.end(overviewPage);
+        //PRODUCTS
     }
-    else if (pathName === "/products")
-        res.end("Welcome to the products page");
-    else if (pathName === "/api") {
+    else if (pathname === "/product") {
+        const fruit = fruits.find((f) => {
+            return f.id === Number(query.id);
+        });
+        if (fruit && fruit.id !== undefined) {
+            const html = (0, fill_template_1.fillTemplate)(productsTemplate, fruit);
+            res.writeHead(200, {
+                "content-type": "text/html",
+            });
+            res.end(html);
+        }
+        else {
+            res.writeHead(404, {
+                "content-type": "text/html",
+            });
+            res.end("<h1>No Product found!</h1>");
+        }
+    }
+    //API
+    else if (pathname === "/api") {
         res.writeHead(200, {
             "content-type": "application/json",
         });
-        res.end(exports.data);
+        res.end(data);
     }
+    //NOT FOUND
     else {
         res.writeHead(404, {
             "Content-Type": "text/html",

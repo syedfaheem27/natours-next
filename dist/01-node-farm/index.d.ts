@@ -1,4 +1,2 @@
-export declare const data: any;
-export declare const productCardTemplate: any;
-export declare const overviewTemplate: any;
+export {};
 //# sourceMappingURL=index.d.ts.map
